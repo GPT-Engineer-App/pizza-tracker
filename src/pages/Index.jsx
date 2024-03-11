@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { Box, Button, Container, Heading, VStack, HStack, Text, Progress, useToast, Alert, AlertIcon, AlertTitle, AlertDescription, CloseButton } from "@chakra-ui/react";
+import { Box, Button, Container, Heading, VStack, HStack, Text, Progress, useToast, Alert, AlertIcon, AlertTitle, AlertDescription, CloseButton, Input } from "@chakra-ui/react";
 import { FaClock, FaMotorcycle, FaPizzaSlice } from "react-icons/fa";
 
 // Helper function to format time in MM:SS format
@@ -11,6 +11,7 @@ const formatTime = (seconds) => {
 
 const Index = () => {
   const [orders, setOrders] = useState([]);
+  const [deliveryPerson, setDeliveryPerson] = useState("");
   const toast = useToast();
 
   const handleStartOrder = () => {
@@ -27,8 +28,8 @@ const Index = () => {
     setOrders(orders.map((order) => (order.id === orderId ? { ...order, endTime: Date.now(), status: "ready for delivery" } : order)));
   };
 
-  const handleDeliverOrder = (orderId) => {
-    setOrders(orders.filter((order) => order.id !== orderId));
+  const handleDeliverOrder = (orderId, deliveryPersonName) => {
+    setOrders(orders.map((order) => (order.id === orderId ? { ...order, deliveryPerson: deliveryPersonName, status: "delivered" } : order)));
     toast({
       title: "Order delivered!",
       description: "The pizza has been successfully delivered.",
@@ -56,7 +57,7 @@ const Index = () => {
 
         <Box w="full">
           {orders.map((order) => (
-            <Box key={order.id} borderWidth="1px" borderRadius="lg" p={4} mb={4}>
+            <Box key={order.id} borderWidth="1px" borderRadius="lg" p={4} mb={4} bg={order.status === "delivered" ? "green.100" : undefined}>
               <HStack justifyContent="space-between">
                 <HStack>
                   <FaClock />
@@ -69,9 +70,12 @@ const Index = () => {
                     Finish Order
                   </Button>
                 ) : (
-                  <Button leftIcon={<FaMotorcycle />} colorScheme="red" onClick={() => handleDeliverOrder(order.id)}>
-                    Deliver Order
-                  </Button>
+                  <>
+                    <Input placeholder="Delivery Person" value={deliveryPerson} onChange={(e) => setDeliveryPerson(e.target.value)} size="sm" />
+                    <Button leftIcon={<FaMotorcycle />} colorScheme="red" onClick={() => handleDeliverOrder(order.id, deliveryPerson)}>
+                      Deliver Order
+                    </Button>
+                  </>
                 )}
               </HStack>
               {order.status === "ready for delivery" && (
@@ -79,7 +83,7 @@ const Index = () => {
                   <AlertIcon />
                   <Box flex="1">
                     <AlertTitle>Ready for Delivery!</AlertTitle>
-                    <AlertDescription display="block">This order is ready to be delivered.</AlertDescription>
+                    <AlertDescription display="block">{order.deliveryPerson ? `Delivered by ${order.deliveryPerson}` : "This order is ready to be delivered."}</AlertDescription>
                   </Box>
                   <CloseButton position="absolute" right="8px" top="8px" />
                 </Alert>
